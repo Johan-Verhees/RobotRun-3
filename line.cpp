@@ -11,6 +11,9 @@ extern ButtonC buttonC;
 uint16_t sensorValues[5];
 bool useEmitters = true;
 
+unsigned long cornerCooldown = 0;
+
+
 uint16_t getSensorValue(int index) {
     return sensorValues[index];
 }
@@ -75,6 +78,8 @@ uint8_t checkCorner(){
   bool leftCorner = (sensorValues[0] > 10);
   bool rightCorner = (sensorValues[4] > 10);
 
+
+
   if(rightCorner){
     return 1;
   } else if(leftCorner){
@@ -94,13 +99,14 @@ void reactCorner(int currentCorner){
 
   if(currentCorner == 1){ // should turn right
     motors.setSpeeds(baseMotorSpeed, -baseMotorSpeed/2);
-    delay(500);
+    delay(250);
 
   } else if(currentCorner == 2){
     motors.setSpeeds(-baseMotorSpeed/2, baseMotorSpeed);
-    delay(500);
+    delay(250);
 
   }
+cornerCooldown = millis();
 }
 
 
@@ -110,7 +116,10 @@ void followLine(){
   ReadIR();
   lineSensors.readCalibrated(sensorValues); // read sensors and store info
 
-    reactCorner(checkCorner());
-    trackStraight();
+    if(millis() > cornerCooldown + 500){
+        reactCorner(checkCorner());
+      return;
+    }
+  trackStraight();
 
 }
